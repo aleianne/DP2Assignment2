@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." default="generate-artifacts" name="NFV-SOL2">
+	<description>
+			Script for NFV Assignment 2 solution
+	</description>
+	
+	<property name="lab2-location" location="." />
+	<property name="gen.dir" location="${lab2-location}/gen-src" />
+	<property name="schema.dir" location="${lab2-location}/custom" />
+	
+	
+	<target name="generate-artifacts">
+		<exec executable="xjc" failonerror="true" >
+			<arg value="-d" />
+			<arg value="${gen.dir}" />
+			<arg value="-p" />
+			<arg value="it.polito.dp2.NFV.sol2" />
+			<arg value="${schema.dir}/Neo4JSimpleXML.xsd" />
+		</exec>
+		<touch file="${gen.dir}/.flagfile" />
+	</target>
+
+</project>
