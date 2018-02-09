@@ -24,46 +24,36 @@ import it.polito.dp2.NFV.lab2.UnknownNameException;
 
 public class ReachabilityTesterImpl implements ReachabilityTester {
 	
-	private NfvReader monitor;																		// interface used to read the data
+	// interface used to read the data
+	private NfvReader monitor;																		
 
 	private JAXClientManager clientManager;
 	private NffgSetup nffgLoader;
 	
 	protected ReachabilityTesterImpl(NfvReader monitor) throws ReachabilityTesterException {											// instantiate a new object factory
 		this.monitor = monitor;
-		
 		nffgLoader = new NffgSetup();
-		
-		// define the clientManager in order to return the intance of the client at every invocation of the clientManager
 		clientManager = new JAXClientManager();
-		
 		System.out.println("ReachabilityTester instantiated");
 	}
 
 	@Override
 	public void loadGraph(String nffgName) throws UnknownNameException, AlreadyLoadedException, ServiceException {
-	
 		NffgReader nfgr;
 		
 		if (nffgName == null) 
 			throw new UnknownNameException("the graph passed as argument is null");															// throw a new exception if the nffg name is null
-		
 		if ((nfgr = monitor.getNffg(nffgName)) == null)
 			throw new UnknownNameException("the graph passed as argument cannot be found inside the NfvReader interface");					// throw a new exception if the nffg doesn't exist in the readere interface
-		
 		if (nffgLoader.searchNffg(nffgName)) 
 			throw new AlreadyLoadedException("the graph is already loaded into the server");												// if the nffg list contains the nffg name throw a new already loaded exception
 		
 		try {
-			
 			System.out.println("begin to send nffg-nodes to the server\n");
 			nffgLoader.sendNffgNodes(client, nfgr);
-			
 			System.out.println("begin to forward the NFFG relationships to the server\n");						// get the relationships from the interface, pass as parameter the nodeID map for the destination nodes
 			nffgLoader.sendNffgRelationships(client, nfgr);
-		
 			System.out.println("Nffg nodes correctly stored in remote DB\n");
-			
 		} catch(ServiceException se) {
 			// close the client and re throw this exception outside the library
 			client.close();
@@ -77,13 +67,10 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			throws UnknownNameException, NoGraphException, ServiceException {
 		
 		NffgReader nfgr;	
-		
 		if (nffgName == null) 
 			throw new UnknownNameException("the name passed as argument is null");
-		
 		if ((nfgr = monitor.getNffg(nffgName)) == null ) 
 			throw new UnknownNameException("the graph doesn't exist");
-		
 		if (nffgLoader.searchNffg(nffgName)) 
 			throw new NoGraphException("the graph is not loaded into the database");
 		
@@ -106,31 +93,6 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			}
 			
 			Response res;
-			
-			try {
-				//String targetResource = "http://localhost:8080/Neo4JSimpleXML/webapi/data/node/" + nodeID + "/reachableNodes?nodeLabel=Host";
-				res = client.target(JAXClientManager.getBaseURI()
-													.path("/node/" + nodeID)
-													.queryParam("nodeLabel", "Host")
-													.build())
-						.request()
-						.accept(MediaType.APPLICATION_XML)
-						.get();
-				
-			} catch(IllegalArgumentException ie) {
-				client.close();
-				throw new ServiceException("JAX-RS returned an exception: " + ie.getMessage());
-			}
-			
-			StatusType resStatus = res.getStatusInfo();
-			if (resStatus.getStatusCode() == 200) {
-				System.out.println("response for node " + nodeID + "received correclty");
-			} else {
-				//close the client and then raise a new ServiceException
-				client.close();
-				throw new ServiceException("server returned an error: " + resStatus.getStatusCode() + " " + resStatus.getReasonPhrase());
-			}
-			
 			try {
 				
 				Nodes nodes = res.readEntity(Nodes.class);
@@ -148,10 +110,8 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 
 	@Override
 	public boolean isLoaded(String nffgName) throws UnknownNameException {
-			
 		if (nffgName == null) 
 			throw new UnknownNameException();							
-		
 		return (nffgLoader.searchNffg(nffgName));
 	}
 

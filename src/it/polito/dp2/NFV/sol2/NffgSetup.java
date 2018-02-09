@@ -35,6 +35,8 @@ public class NffgSetup {
 		graphNodeIDmap = new HashMap<String , Map<String, String>> ();
 		hostIDmap = new HashMap<String, String> ();
 		nodeRelSet = new HashSet<StringPair> ();
+		
+		
 	}
 	
 	// return true if the nffg exist into the NFV reader interface, false otherwise
@@ -80,9 +82,6 @@ public class NffgSetup {
 			neo4jNode.getProperties().getProperty().get(0).setName(nffgpropertyNameValue);
 			neo4jNode.getProperties().getProperty().get(0).setValue(nodeName);
 			
-			/*Labels newLabels = new Labels();
-			newLabels.getLabel().add(nffglabelValue);*/
-			
 			nodeID = nodeForwarder.postNode(neo4jNode, networkNodeLabels);
 			nodeIDmap.put(nodeName, nodeID);													// the id received from the server is stored inside the hash map together with the name of the node
 		
@@ -93,10 +92,6 @@ public class NffgSetup {
 				// set the property for the specified node
 				neo4jNode.getProperties().getProperty().get(0).setName(hostpropertyNameValue);
 				neo4jNode.getProperties().getProperty().get(0).setValue(nodeName);
-				
-				// create a new label
-				/*Labels newLabels2= new Labels();
-				newLabels2.getLabel().add(hostlabelValue);*/
 				
 				// forward the node with his labels
 				nodeID = nodeForwarder.postNode(neo4jNode, hostLabels);		
@@ -110,7 +105,6 @@ public class NffgSetup {
 	
 	// send the relationhip between the nodes
 	protected void sendNffgRelationships(Client client, NffgReader nfgr) throws ServiceException {
-		
 		if(client == null || nfgr == null) 
 			throw new ServiceException();
 		
@@ -130,7 +124,6 @@ public class NffgSetup {
 		// for each node in the node reader interface
 		// read the node reader interface and forward the relationship
 		for(NodeReader nr: nrSet) {
-			
 			Set<LinkReader> lrSet = nr.getLinks();
 			
 			destNodeID = hostIDmap.get(nr.getHost().getName());
@@ -144,11 +137,11 @@ public class NffgSetup {
 			
 			// check if the relationships between two nodes are already loaded into the DB 
 			if(!nodeRelSet.contains(nodeRel)) {
-				
 				newRelationship.setType(hostrelType);
 				newRelationship.setDstNode(destNodeID);
+				newRelationship.setSrcNode(srcNodeID);
 				
-				relForwarder.postRelationship(newRelationship, srcNodeID);
+				relForwarder.postRelationship(newRelationship);
 				nodeRelSet.add(nodeRel);																	// add the relationship into the set 
 			} else {
 				System.out.println("the relationship is already onto the database");
@@ -159,7 +152,6 @@ public class NffgSetup {
 				destNodeID = nodeIDmap.get(l.getDestinationNode().getName());						// get the id of the destination node using the hashmap
 				srcNodeID = nodeIDmap.get(l.getSourceNode().getName());								// get the id of the source node using the hashmap
 				
-				// lauch a new exception if the hashmaps return null
 				if(destNodeID == null || srcNodeID == null) 
 					throw new ServiceException("cannot read the information about the destination and/or the source node");
 				
@@ -167,11 +159,10 @@ public class NffgSetup {
 				
 				// check if the relationships between two nodes are already loaded into the DB 
 				if(!nodeRelSet.contains(nodeRel2)) {
-					
 					newRelationship.setType(nffgrelType);
 					newRelationship.setDstNode(destNodeID);
-					
-					relForwarder.postRelationship(newRelationship, srcNodeID);
+					newRelationship.setSrcNode(srcNodeID);
+					relForwarder.postRelationship(newRelationship);
 					nodeRelSet.add(nodeRel2);																	// add the relationship into the set 
 				} else {
 					System.out.println("the relatioship is already onto the database");
