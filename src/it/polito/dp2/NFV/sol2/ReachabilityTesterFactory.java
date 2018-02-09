@@ -10,16 +10,12 @@ public class ReachabilityTesterFactory extends it.polito.dp2.NFV.lab2.Reachabili
 	
 	@Override
 	public ReachabilityTester newReachabilityTester() throws ReachabilityTesterException {
-		
-		NfvReader monitor;
-		
 		try {
-			monitor = NfvReaderFactory.newInstance().newNfvReader();							// instantiate a new NFV reader
+			NfvReader monitor = NfvReaderFactory.newInstance().newNfvReader();							// instantiate a new NFV reader
+			return new ReachabilityTesteImpl(monitor);
 		} catch(NfvReaderException ne) {		
 			throw new ReachabilityTesterException();
 		}
-		
-		return new ReachabilityTesterImpl(monitor);
 	}
 	
 }

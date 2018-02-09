@@ -39,7 +39,6 @@ public class NffgSetup {
 	
 	// return true if the nffg exist into the NFV reader interface, false otherwise
 	protected boolean searchNffg(String nffgName) {
-		
 		if (graphNodeIDmap.get(nffgName) == null) 
 			return false;
 		else 
@@ -52,7 +51,6 @@ public class NffgSetup {
 	
 	// read the data from the nffg interface and perform a post versus the server
 	protected void sendNffgNodes(Client client, NffgReader nfgr) throws ServiceException {
-		
 		if(client == null || nfgr == null)
 			throw new ServiceException("application cannot forward the data to the server");
 		
@@ -62,61 +60,51 @@ public class NffgSetup {
 		String nodeName, nodeID;
 		ForwardNeo4jEntities nodeForwarder = new ForwardNeo4jEntities(client);
 		
-		// crate a new property list 
 		Properties newProperties = new Properties();
 		newProperties.getProperty().add(new Property());
+	
+		Node neo4jNode = new Node();
+		neo4jNode.setProperties(newProperties);
 		
-		// create a new node
-		Node newNode = new Node();
-		newNode.setProperties(newProperties);
+		Labels hostLabels = new Labels();
+		Labels networkNodeLabels = new Labels();
+		hostLabels.getLabel().add(nffgLabelValue);
+		networkNodeLabels.getLabels().add(hostLabelValue);
 		
 		// read the info from the nfv interface
 		// than forward the information to the remote server
 		for(NodeReader nr: nrSet) {
-
-			// get the name of the considered node by the node reader interface
 			nodeName = nr.getName();
 			
 			// set the property for the specified node
-			newNode.getProperties().getProperty().get(0).setName(nffgpropertyNameValue);
-			newNode.getProperties().getProperty().get(0).setValue(nodeName);
+			neo4jNode.getProperties().getProperty().get(0).setName(nffgpropertyNameValue);
+			neo4jNode.getProperties().getProperty().get(0).setValue(nodeName);
 			
-			// create a new label
-			Labels newLabels = new Labels();
-			newLabels.getLabel().add(nffglabelValue);
+			/*Labels newLabels = new Labels();
+			newLabels.getLabel().add(nffglabelValue);*/
 			
-			// forward the node with his labels
-			nodeID = nodeForwarder.postNode(newNode);
-			nodeForwarder.postLabels(newLabels, nodeID);
-			
+			nodeID = nodeForwarder.postNode(neo4jNode, networkNodeLabels);
 			nodeIDmap.put(nodeName, nodeID);													// the id received from the server is stored inside the hash map together with the name of the node
 		
 			// check if an host is already loaded
 			if(hostIDmap.get(nr.getHost().getName()) == null) {
-				
-				// get the name of the host using the host reader interface
 				nodeName = nr.getHost().getName();
 				
 				// set the property for the specified node
-				newNode.getProperties().getProperty().get(0).setName(hostpropertyNameValue);
-				newNode.getProperties().getProperty().get(0).setValue(nodeName);
+				neo4jNode.getProperties().getProperty().get(0).setName(hostpropertyNameValue);
+				neo4jNode.getProperties().getProperty().get(0).setValue(nodeName);
 				
 				// create a new label
-				Labels newLabels2= new Labels();
-				newLabels2.getLabel().add(hostlabelValue);
+				/*Labels newLabels2= new Labels();
+				newLabels2.getLabel().add(hostlabelValue);*/
 				
 				// forward the node with his labels
-				nodeID = nodeForwarder.postNode(newNode);
-				nodeForwarder.postLabels(newLabels, nodeID);
-				
-				hostIDmap.put(nodeName, nodeID);	// the id received from the server is stored inside the hash map together with the name of the node
-	
+				nodeID = nodeForwarder.postNode(neo4jNode, hostLabels);		
+				hostIDmap.put(nodeName, nodeID);												// the id received from the server is stored inside the hash map together with the name of the node
 			} else {
-				System.out.println("host " + nr.getHost().getName() + "is already inside the database");
-			}
-			
+				System.out.println("host " + nr.getHost().getName() + " is already inside the database");
+			}	
 		}
-		
 		graphNodeIDmap.put(nfgr.getName(), nodeIDmap);										// associate the hashmap just created with the nffg graph name
 	}
 	
@@ -165,7 +153,6 @@ public class NffgSetup {
 			} else {
 				System.out.println("the relationship is already onto the database");
 			}
-			
 			
 			// for each link inside the node 
 			for(LinkReader l: lrSet) {
