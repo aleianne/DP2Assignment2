@@ -35,8 +35,6 @@ public class NffgSetup {
 		graphNodeIDmap = new HashMap<String , Map<String, String>> ();
 		hostIDmap = new HashMap<String, String> ();
 		nodeRelSet = new HashSet<StringPair> ();
-		
-		
 	}
 	
 	// return true if the nffg exist into the NFV reader interface, false otherwise
@@ -52,15 +50,14 @@ public class NffgSetup {
 	}
 	
 	// read the data from the nffg interface and perform a post versus the server
-	protected void sendNffgNodes(Client client, NffgReader nfgr) throws ServiceException {
-		if(client == null || nfgr == null)
+	protected void sendNffgNodes(NffgReader nfgr) throws ServiceException {
+		if(nfgr == null)
 			throw new ServiceException("application cannot forward the data to the server");
-		
-		Set<NodeReader> nrSet = nfgr.getNodes();													// get node reader set of from the nffg reader interface
+											
 		Map<String, String> nodeIDmap = new HashMap<String, String> ();
 		
 		String nodeName, nodeID;
-		ForwardNeo4jEntities nodeForwarder = new ForwardNeo4jEntities(client);
+		Neo4jServiceManager neo4jService = new Neo4jServiceManager();
 		
 		Properties newProperties = new Properties();
 		newProperties.getProperty().add(new Property());
@@ -73,16 +70,14 @@ public class NffgSetup {
 		hostLabels.getLabel().add(nffgLabelValue);
 		networkNodeLabels.getLabels().add(hostLabelValue);
 		
-		// read the info from the nfv interface
-		// than forward the information to the remote server
-		for(NodeReader nr: nrSet) {
+		// intereate all the node in the graph and forward it to the web service
+		for(NodeReader nr: nfgr.getNodes()) {
 			nodeName = nr.getName();
 			
-			// set the property for the specified node
 			neo4jNode.getProperties().getProperty().get(0).setName(nffgpropertyNameValue);
 			neo4jNode.getProperties().getProperty().get(0).setValue(nodeName);
 			
-			nodeID = nodeForwarder.postNode(neo4jNode, networkNodeLabels);
+			nodeID = neo4jService.postNode(neo4jNode, networkNodeLabels);
 			nodeIDmap.put(nodeName, nodeID);													// the id received from the server is stored inside the hash map together with the name of the node
 		
 			// check if an host is already loaded
@@ -94,7 +89,7 @@ public class NffgSetup {
 				neo4jNode.getProperties().getProperty().get(0).setValue(nodeName);
 				
 				// forward the node with his labels
-				nodeID = nodeForwarder.postNode(neo4jNode, hostLabels);		
+				nodeID = neo4jService.postNode(neo4jNode, hostLabels);		
 				hostIDmap.put(nodeName, nodeID);												// the id received from the server is stored inside the hash map together with the name of the node
 			} else {
 				System.out.println("host " + nr.getHost().getName() + " is already inside the database");
@@ -104,26 +99,19 @@ public class NffgSetup {
 	}
 	
 	// send the relationhip between the nodes
-	protected void sendNffgRelationships(Client client, NffgReader nfgr) throws ServiceException {
-		if(client == null || nfgr == null) 
-			throw new ServiceException();
-		
+	protected void sendNffgRelationships(NffgReader nfgr, Neo4jServiceManager neo4jService) throws ServiceException {	
 		Map<String , String> nodeIDmap;
 		
 		if((nodeIDmap = graphNodeIDmap.get(nfgr.getName())) == null) 
 			throw new ServiceException();
 		
-		Set<NodeReader> nrSet = nfgr.getNodes();
-		
-		ForwardNeo4jEntities relForwarder = new ForwardNeo4jEntities(client);
 		String destNodeID, srcNodeID; 
 		
 		// instantiate a new relationship object used to create the XML request
 		Relationship newRelationship = new Relationship();
 		
-		// for each node in the node reader interface
-		// read the node reader interface and forward the relationship
-		for(NodeReader nr: nrSet) {
+		// read all the node inside interface
+		for(NodeReader nr: nfgr.getNodes()) {
 			Set<LinkReader> lrSet = nr.getLinks();
 			
 			destNodeID = hostIDmap.get(nr.getHost().getName());
@@ -140,11 +128,10 @@ public class NffgSetup {
 				newRelationship.setType(hostrelType);
 				newRelationship.setDstNode(destNodeID);
 				newRelationship.setSrcNode(srcNodeID);
-				
-				relForwarder.postRelationship(newRelationship);
+				neo4jService.postRelationship(newRelationship);
 				nodeRelSet.add(nodeRel);																	// add the relationship into the set 
 			} else {
-				System.out.println("the relationship is already onto the database");
+				System.out.println("the relationship is already into the database");
 			}
 			
 			// for each link inside the node 
@@ -162,10 +149,10 @@ public class NffgSetup {
 					newRelationship.setType(nffgrelType);
 					newRelationship.setDstNode(destNodeID);
 					newRelationship.setSrcNode(srcNodeID);
-					relForwarder.postRelationship(newRelationship);
+					neo4jService.postRelationship(newRelationship);
 					nodeRelSet.add(nodeRel2);																	// add the relationship into the set 
 				} else {
-					System.out.println("the relatioship is already onto the database");
+					System.out.println("the relatioship is already into the database");
 				}
 			}					
 		}

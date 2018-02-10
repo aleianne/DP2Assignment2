@@ -13,8 +13,8 @@ public class Neo4jServiceManager {
 	private Client client;
 	private Response serverResponse;
 	
-	protected Neo4jServiceManager(Client client) {
-		this.client = client;
+	protected Neo4jServiceManager() {
+		client = JAXClientManager.getClientInstance();
 	}
 
 	// this method send the node information to the server and return the node ID
@@ -37,6 +37,7 @@ public class Neo4jServiceManager {
 			checkResponse(serverResponse);
 			return nodeID;																	// return the node id received from the server			
 		} catch(ResponseProcessingException | IllegalStateException e) {
+			client.close();
 			throw new ServiceException("JAX-RS client raised an exception: " + e.getMessage());
 		}
 	}
@@ -63,7 +64,7 @@ public class Neo4jServiceManager {
 	// used to send the relationship between two nodes
 	protected Response postRelationship(Relationship rel) throws ServiceException {
 		try {
-			String nodeID = r
+			String nodeID = rel.getSrcNode();
 			serverResponse = client.target(JAXClientManager.getBaseURI().path("node/" + nodeID + "/relationship").build())
 					.request()
 					.accept(MediaType.APPLICATION_XML)
@@ -72,16 +73,17 @@ public class Neo4jServiceManager {
 			checkResponse(serverResponse);
 			return serverResponse;
 		} catch(ResponseProcessingException pe) {
+			client.close();
 			throw new ServiceException("JAX-RS client raised an exception: " + pe.getMessage());
 		} catch(NullPointerException npe) {
+			client.close();
 			throw new ServiceException("impossible to invoke post, the argument is null");
 		}
 	}
 	
-	//
-	protected Response getReachableHost() {
+	// return all the host reachable by the specified node
+	protected Response getReachableHost(String nodeID) throws ServiceException {
 		try {
-			//String targetResource = "http://localhost:8080/Neo4JSimpleXML/webapi/data/node/" + nodeID + "/reachableNodes?nodeLabel=Host";
 			serverResponse = client.target(JAXClientManager.getBaseURI()
 												.path("/node/" + nodeID)
 												.queryParam("nodeLabel", "Host")
@@ -104,6 +106,7 @@ public class Neo4jServiceManager {
 		if (resStatus.getStatusCode() != 200 &&
 				resStatus.getStatusCode() != 201 &&
 				resStatus.getStatusCode() != 204) {
+			client.close();
 			throw new ServiceException("server returned an error: " + resStatus.getStatusCode() + " " + resStatus.getReasonPhrase());
 		}
 	}

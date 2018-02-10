@@ -9,13 +9,11 @@ import it.polito.dp2.NFV.lab2.ServiceException;
 
 public class JAXClientManager {
 	
-	private static Client client;
-	
+	private static Client JAXClient;
 	private static JAXClientManager clientManager = new JAXClientManager();
 	
 	protected JAXClientManager() {
-		// instantiate a new JAX-RS client
-		client = ClientBuilder.newClient();
+		JAXClient = ClientBuilder.newClient();
 		System.out.println("JAX-RS client created");
 	}
 	
@@ -23,11 +21,10 @@ public class JAXClientManager {
 		return UriBuilder.fromUri("http://localhost:8080/Neo4JSimpleXML/webapi/data/");
 	}
 	
-	protected  static Client getClientInstance() throws ServiceException {
-		if(client == null) 
-			throw new ServiceException("impossible to establish a connection with the server");
-		else 
-			return client;
+	protected static Client getClientInstance() {
+		return JAXClient;
 	}
+	
+	
 	
 }
