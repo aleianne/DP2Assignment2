@@ -47,7 +47,9 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 	}
 
 	@Override
-	public void loadGraph(String nffgName) throws UnknownNameException, AlreadyLoadedException, ServiceException {
+	public void loadGraph(String nffgName) 
+			throws UnknownNameException, AlreadyLoadedException, ServiceException {
+		
 		NffgReader nfgr;
 		
 		if (nffgName == null) 
@@ -74,7 +76,8 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 	public Set<ExtendedNodeReader> getExtendedNodes(String nffgName)
 			throws UnknownNameException, NoGraphException, ServiceException {
 		
-		NffgReader nfgr;	
+		NffgReader nfgr;
+		
 		if (nffgName == null) 
 			throw new UnknownNameException("the name passed as argument is null");
 		
