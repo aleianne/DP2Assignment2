@@ -113,6 +113,11 @@ public class Neo4jServiceManager {
 		}
 	}
 	
+	// close the instance of the jax rs client
+	protected void closeClient() {
+		client.close();
+	}
+	
 	// check the response of the server and raise a service exception if the the status code is not 200
 	private void checkResponse(Response res) throws ServiceException {
 		Response.StatusType resStatus = res.getStatusInfo();

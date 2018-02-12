@@ -101,12 +101,20 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			NodeReader nodeReader =  nfgr.getNode(nodeName);								// get the nodereader information about the specified node
 			String nodeID = clientState.getNodeId(nffgName, nodeName);						// get the node id of the node
 			
-			if (nodeID == null) 
+			if (nodeID == null) {
+				neo4jService.closeClient();
 				throw new ServiceException("the node not correspond to any node contained into the interface");
+			}
+				
+			try {
+				reachableHost = neo4jService.getReachableHost(nodeID);
+				hostSet = getHostSet(reachableHost);
+				extendedNRset.add(new ExtendedNodeImpl(nodeReader, hostSet));
+			} catch(ServiceException se) {
+				neo4jService.closeClient();
+				throw se;
+			}
 			
-			reachableHost = neo4jService.getReachableHost(nodeID);
-			hostSet = getHostSet(reachableHost);
-			extendedNRset.add(new ExtendedNodeImpl(nodeReader, hostSet));
 		}
 		return extendedNRset;
 	}
@@ -183,8 +191,10 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			destNodeID = clientState.getHostId(nr.getHost().getName());
 			srcNodeID = nodeIDmap.get(nr.getName());
 			
-			if(destNodeID == null || srcNodeID == null)
+			if(destNodeID == null || srcNodeID == null) {
+				neo4jService.closeClient();
 				throw new ServiceException("cannot read the information about the destination and/or the source node");
+			}
 				
 			newRelationship.setType(hostrelType);
 			newRelationship.setDstNode(destNodeID);
@@ -196,9 +206,10 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 				destNodeID = nodeIDmap.get(l.getDestinationNode().getName());						// get the id of the destination node using the hashmap
 				srcNodeID = nodeIDmap.get(l.getSourceNode().getName());								// get the id of the source node using the hashmap
 					
-				if(destNodeID == null || srcNodeID == null) 
+				if(destNodeID == null || srcNodeID == null) {
+					neo4jService.closeClient();
 					throw new ServiceException("cannot read the information about the destination and/or the source node");
-					
+				}
 				newRelationship.setType(nffgrelType);
 				newRelationship.setDstNode(destNodeID);
 				newRelationship.setSrcNode(srcNodeID);
