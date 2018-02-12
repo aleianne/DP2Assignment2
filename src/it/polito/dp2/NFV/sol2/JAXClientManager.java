@@ -24,7 +24,4 @@ public class JAXClientManager {
 	protected static Client getClientInstance() {
 		return JAXClient;
 	}
-	
-	
-	
 }
