@@ -48,9 +48,9 @@ public class ExtendedNodeImpl implements ExtendedNodeReader {
 
 	@Override
 	public Set<HostReader> getReachableHosts() throws NoGraphException, ServiceException {
-		if (hostSet == null) {
+		if (hostSet == null) 
 			throw new ServiceException("impossible to return the set of extended nodes");
-		}
+		
 		return hostSet;
 	}
 

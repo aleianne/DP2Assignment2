@@ -89,9 +89,8 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 		
 		Set<String> nodeSet = clientState.getNodes(nffgName);
 		
-		if(nodeSet == null || nodeSet.isEmpty()) {
+		if(nodeSet == null || nodeSet.isEmpty())
 			throw new NoGraphException("the graph is not loaded into the DataBase");
-		}
 		
 		Set<ExtendedNodeReader> extendedNRset = new HashSet<ExtendedNodeReader> ();
 		Set<HostReader> hostSet;
@@ -102,7 +101,6 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			NodeReader nodeReader =  nfgr.getNode(nodeName);								// get the nodereader information about the specified node
 			String nodeID = clientState.getNodeId(nffgName, nodeName);						// get the node id of the node
 			
-			// check if the node is null or not
 			if (nodeID == null) 
 				throw new ServiceException("the node not correspond to any node contained into the interface");
 			
