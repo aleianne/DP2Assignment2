@@ -128,8 +128,8 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			return hostSet;
 		}
 		
-		for (Node n: nodeList) {																// get hostname for each node in the response
-			String hostName = n.getProperties().getProperty().get(0).getValue();
+		for (Node nodeElement: nodeList) {																// get hostname for each node in the response
+			String hostName = nodeElement.getProperties().getProperty().get(0).getValue();
 			HostReader hr;
 			if ((hr = monitor.getHost(hostName)) == null) 
 				throw new ServiceException("the hostname returned by the server doesn't exist into nfv reader interface");
