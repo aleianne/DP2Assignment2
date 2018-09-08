@@ -37,15 +37,17 @@ public class Neo4jServiceManager {
 			
 			checkResponse(serverResponse);														
 			return nodeID;																	// return the node id received from the server			
-		} catch(ResponseProcessingException | IllegalStateException e) {
-			client.close();
+		} catch(ProcessingException | IllegalStateException e) {
+			/*System.out.println(e.getMessage());
+			e.printStackTrace();
+			serverResponse.close();*/
+			//client.close();
 			throw new ServiceException("JAX-RS client has raised an exception: " + e.getMessage());
-		} catch(NullPointerException npe) {
+		} /*catch(NullPointerException npe) {
 			client.close();
+			serverResponse.close();
 			throw new ServiceException("impossible to invoke post, the argument is null");
-		} finally {
-			serverResponse.close();															// close the stream associated with the response in case of exception
-		}
+		} */
 	}
 	
 	// this method is used to post a set of labels for a specific node
@@ -70,7 +72,7 @@ public class Neo4jServiceManager {
 	// used to send the relationship between two nodes
 	protected String postRelationship(Relationship rel) throws ServiceException {
 		try {
-			String nodeID = rel.getSrcNode();
+			String nodeID = rel.getSrcNode();																					// get the source node from the relation instance
 			serverResponse = client.target(JAXClientManager.getBaseURI().path("node/" + nodeID + "/relationships").build())
 					.request()
 					.accept(MediaType.APPLICATION_XML)
@@ -78,15 +80,15 @@ public class Neo4jServiceManager {
 			
 			checkResponse(serverResponse);
 			return serverResponse.readEntity(Relationship.class).getId();
-		} catch(IllegalStateException | IllegalArgumentException | ResponseProcessingException e) {
-			client.close();
+		} catch(IllegalStateException | IllegalArgumentException | ProcessingException e) {
+			//serverResponse.close();
+			//client.close();
 			throw new ServiceException("JAX-RS client has raised an exception: " + e.getMessage());
-		} catch(NullPointerException npe) {
+		} /*catch(NullPointerException npe) {
 			client.close();
-			throw new ServiceException("impossible to invoke post, the argument is null");
-		} finally {
 			serverResponse.close();
-		}
+			throw new ServiceException("impossible to invoke post, the argument is null");
+		}*/
 	}
 	
 	// return all the host reachable by the specified node
@@ -103,14 +105,14 @@ public class Neo4jServiceManager {
 			checkResponse(serverResponse);
 			return serverResponse.readEntity(Nodes.class);
 		} catch(ProcessingException | IllegalArgumentException | IllegalStateException e) {
-			client.close();
+			//serverResponse.close();
+			//client.close();
 			throw new ServiceException("JAX-RS raised an exception: " + e.getMessage());
-		} catch(NullPointerException npe) {
+		} /*catch(NullPointerException npe) {
 			client.close();
-			throw new ServiceException("impossible to invoke post, the argument is null");
-		} finally {
 			serverResponse.close();
-		}
+			throw new ServiceException("impossible to invoke post, the argument is null");
+		}*/
 	}
 	
 	// close the instance of the jax rs client
@@ -121,10 +123,11 @@ public class Neo4jServiceManager {
 	// check the response of the server and raise a service exception if the the status code is not 200
 	private void checkResponse(Response res) throws ServiceException {
 		Response.StatusType resStatus = res.getStatusInfo();
-		if (resStatus.getStatusCode() != 200 &&
-				resStatus.getStatusCode() != 201 &&
-				resStatus.getStatusCode() != 204) {
-			client.close();
+		int statusCode = resStatus.getStatusCode();
+		if (statusCode >= 400 && statusCode <= 599) {
+			//System.out.println("the error returned by the server is: " + statusCode);
+			//client.close();
+			//res.close();
 			throw new ServiceException("server returned an error: " + resStatus.getStatusCode() + " " + resStatus.getReasonPhrase());
 		}
 	}

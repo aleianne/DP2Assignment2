@@ -16,7 +16,7 @@
 			<arg value="${gen.dir}" />
 			<arg value="-p" />
 			<arg value="it.polito.dp2.NFV.sol2" />
-			<arg value="${xsd.dir}/Neo4JSimpleXML.xsd" />
+			<arg value="${custom.dir}/Neo4JSimpleXML.xsd" />
 		</exec>
 		<touch file="${gen.dir}/.flagfile" />
 	</target>

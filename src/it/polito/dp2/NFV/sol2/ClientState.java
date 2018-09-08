@@ -14,7 +14,7 @@ public class ClientState {
 		hostMap = new HashMap<String, String> ();
 	}
 	
-	// insert in the graph map a set of nodes and their relative id returned by the server 
+	// insert into the graph map a set of nodes and their relative id returned by the server
 	protected void setGraphMap(String nffgName, Map<String, String> nodeMap) {
 		graphMap.put(nffgName, nodeMap);
 	}
@@ -24,17 +24,11 @@ public class ClientState {
 	}
 	
 	protected boolean hostIsForwarded(String hostName)  {
-		if(hostMap.get(hostName) == null) 
-			return false;
-		else 
-			return true;
+		return hostMap.get(hostName) != null;
 	}
 	
 	protected boolean graphIsForwarded(String graphName) {
-		if(graphMap.get(graphName) == null) 
-			return false;
-		else 
-			return true;
+		return graphMap.get(graphName) != null;
 	} 
 	
 	protected String getHostId(String hostname) {
@@ -51,7 +45,7 @@ public class ClientState {
 	}
 		
 	// return a set containing the nodes inside the graph
-	protected Set<String> getNodes(String nffgName) {
+	protected Set<String> getNodeSet(String nffgName) {
 		Map<String, String> nodeMap = graphMap.get(nffgName);
 		if(nodeMap == null) 
 			return null;

@@ -1,8 +1,8 @@
 //
-// Questo file è stato generato dall'architettura JavaTM per XML Binding (JAXB) Reference Implementation, v2.2.8-b130911.1802 
-// Vedere <a href="http://java.sun.com/xml/jaxb">http://java.sun.com/xml/jaxb</a> 
+// Questo file è stato generato dall'architettura JavaTM per XML Binding (JAXB) Reference Implementation, v2.3.1-b171012.0423 
+// Vedere <a href="https://javaee.github.io/jaxb-v2/">https://javaee.github.io/jaxb-v2/</a> 
 // Qualsiasi modifica a questo file andrà persa durante la ricompilazione dello schema di origine. 
-// Generato il: 2018.02.12 alle 05:47:58 PM CET 
+// Generato il: 2018.08.23 alle 05:47:08 PM CEST 
 //
 
 
@@ -73,11 +73,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Relationships }
+     * Create an instance of {@link Nodes }
      * 
      */
-    public Relationships createRelationships() {
-        return new Relationships();
+    public Nodes createNodes() {
+        return new Nodes();
     }
 
     /**
@@ -89,16 +89,20 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link Nodes }
+     * Create an instance of {@link Relationships }
      * 
      */
-    public Nodes createNodes() {
-        return new Nodes();
+    public Relationships createRelationships() {
+        return new Relationships();
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link Property }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link Property }{@code >}
      * 
+     * @param value
+     *     Java instance representing xml element's value.
+     * @return
+     *     the new instance of {@link JAXBElement }{@code <}{@link Property }{@code >}
      */
     @XmlElementDecl(namespace = "http://pad.polito.it/dp2/Neo4JSimpleXML", name = "property")
     public JAXBElement<Property> createProperty(Property value) {

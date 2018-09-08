@@ -1,1 +1,7 @@
 /bin/
+/.settings/
+/.idea/
+/build/
+lab2.zip
+.classpath
+.project

@@ -31,14 +31,14 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 	private NfvReader monitor;																		
 
 	// string used to create nffg's node property 
-	private final String nffgLabelValue = "Node";
-	private final String nffgpropertyNameValue = "name";
-	private final String nffgrelType = "ForwardTo";
+	private final static String nffgLabelValue = "Node";
+	private final static String nffgpropertyNameValue = "name";
+	private final static String nffgrelType = "ForwardTo";
 		
 	// string used to create host's node property 
-	private final String hostLabelValue = "Host";
-	private final String hostpropertyNameValue = "name";
-	private final String hostrelType = "AllocatedOn";
+	private final static String hostLabelValue = "Host";
+	private final static String hostpropertyNameValue = "name";
+	private final static String hostrelType = "AllocatedOn";
 	
 	private ClientState clientState;
 	
@@ -87,7 +87,7 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 		if ((nfgr = monitor.getNffg(nffgName)) == null ) 
 			throw new UnknownNameException("the graph doesn't exist");
 		
-		Set<String> nodeSet = clientState.getNodes(nffgName);
+		Set<String> nodeSet = clientState.getNodeSet(nffgName);
 		
 		if(nodeSet == null || nodeSet.isEmpty())
 			throw new NoGraphException("the graph is not loaded into the DataBase");
@@ -96,25 +96,27 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 		Set<HostReader> hostSet;
 		Neo4jServiceManager neo4jService = new Neo4jServiceManager();
 		Nodes reachableHost;
-		// for each element in the map get the extended node
+		
 		for (String nodeName: nodeSet) {
 			NodeReader nodeReader =  nfgr.getNode(nodeName);								// get the nodereader information about the specified node
 			String nodeID = clientState.getNodeId(nffgName, nodeName);						// get the node id of the node
 			
-			if (nodeID == null) {
-				neo4jService.closeClient();
-				throw new ServiceException("the node not correspond to any node contained into the interface");
-			}
-				
-			try {
+			if (nodeID == null)
+				//neo4jService.closeClient();
+				throw new ServiceException("the node doesn't correspond to any node contained into the interface");
+
+			reachableHost = neo4jService.getReachableHost(nodeID);
+			hostSet = getHostSet(reachableHost);
+			extendedNRset.add(new ExtendedNodeImpl(nodeReader, hostSet));
+			
+			/*try {
 				reachableHost = neo4jService.getReachableHost(nodeID);
 				hostSet = getHostSet(reachableHost);
 				extendedNRset.add(new ExtendedNodeImpl(nodeReader, hostSet));
 			} catch(ServiceException se) {
-				neo4jService.closeClient();
+				//neo4jService.closeClient();
 				throw se;
-			}
-			
+			}*/
 		}
 		return extendedNRset;
 	}
@@ -145,30 +147,32 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 		return hostSet;
 	}
 
-	// read the data from the nffg interface and perform a post versus the server
-	protected void sendNffgNodes(NffgReader nfgr, Neo4jServiceManager neo4jService, Map<String, String> nodeIDmap) throws ServiceException {
-		// ntwNodeName is the name of the network node
-		String ntwNodeName, nodeID, hostname;
+	// read the data from the nffgReader interface and perform a post versus the server
+	private void sendNffgNodes(NffgReader nfgr, Neo4jServiceManager neo4jService, Map<String, String> nodeIDmap) throws ServiceException {
+		// newNodeName is the name of the network node
+		String newNodeName, nodeID, hostname;
 		Properties newProperties = new Properties();
 		newProperties.getProperty().add(new Property());
-		
+
+		// create the representation of the neo4j node
+		// put inside the properties class, declaring its name but not the value
 		Node neo4jNode = new Node();
 		neo4jNode.setProperties(newProperties);
-			
+		neo4jNode.getProperties().getProperty().get(0).setName(nffgpropertyNameValue);
+
+		// create the labels for the network node and the host
 		Labels hostLabels = new Labels();
 		Labels networkNodeLabels = new Labels();
 		hostLabels.getLabel().add(hostLabelValue);
 		networkNodeLabels.getLabel().add(nffgLabelValue);
 			
-		// intereate all the node in the graph and forward it to the web service
+		// iterate all graph nodes and forward those to the service
 		for(NodeReader nr: nfgr.getNodes()) {
-			ntwNodeName = nr.getName();
-			neo4jNode.getProperties().getProperty().get(0).setName(nffgpropertyNameValue);
-			neo4jNode.getProperties().getProperty().get(0).setValue(ntwNodeName);
-			nodeID = neo4jService.postNode(neo4jNode, networkNodeLabels);
-			nodeIDmap.put(ntwNodeName, nodeID);													// the id received from the server is stored inside the hash map together with the name of the node
-			
+			newNodeName = nr.getName();
 			hostname = nr.getHost().getName();
+			neo4jNode.getProperties().getProperty().get(0).setValue(newNodeName);
+			nodeID = neo4jService.postNode(neo4jNode, networkNodeLabels);
+			nodeIDmap.put(newNodeName, nodeID);													// the id received from the server is stored inside the hash map together with the name of the node
 			if(clientState.hostIsForwarded(hostname)) {
 				System.out.println("host " + hostname + " is already inside the database");
 			} else {
@@ -182,20 +186,20 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 	
 	
 	// send the relationhip between the nodes
-	protected void sendNffgRelationships(NffgReader nfgr, Neo4jServiceManager neo4jService, Map<String, String> nodeIDmap) throws ServiceException {			
+	private void sendNffgRelationships(NffgReader nfgr, Neo4jServiceManager neo4jService, Map<String, String> nodeIDmap) throws ServiceException {
 		String destNodeID, srcNodeID; 
 		Relationship newRelationship = new Relationship();
 			
-		// read all the node inside interface
+		// read all nodes inside nodeReader interface
 		for(NodeReader nr: nfgr.getNodes()) {
 			destNodeID = clientState.getHostId(nr.getHost().getName());
 			srcNodeID = nodeIDmap.get(nr.getName());
 			
 			if(destNodeID == null || srcNodeID == null) {
-				neo4jService.closeClient();
+				//neo4jService.closeClient();
 				throw new ServiceException("cannot read the information about the destination and/or the source node");
 			}
-				
+
 			newRelationship.setType(hostrelType);
 			newRelationship.setDstNode(destNodeID);
 			newRelationship.setSrcNode(srcNodeID);
@@ -207,7 +211,7 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 				srcNodeID = nodeIDmap.get(l.getSourceNode().getName());								// get the id of the source node using the hashmap
 					
 				if(destNodeID == null || srcNodeID == null) {
-					neo4jService.closeClient();
+					//neo4jService.closeClient();
 					throw new ServiceException("cannot read the information about the destination and/or the source node");
 				}
 				newRelationship.setType(nffgrelType);
