@@ -11,14 +11,17 @@ public class JAXClientManager {
 	
 	private static Client JAXClient;
 	private static JAXClientManager clientManager = new JAXClientManager();
+	private static final String clientPropertyName = "it.polito.dp2.NFV.lab2.URL";
+	private static String clientURL;
 	
 	protected JAXClientManager() {
 		JAXClient = ClientBuilder.newClient();
 		System.out.println("JAX-RS client created");
+		clientURL = System.getProperty(clientPropertyName);
 	}
 	
 	protected static UriBuilder getBaseURI() {
-		return UriBuilder.fromUri("http://localhost:8080/Neo4JSimpleXML/webapi/data/");
+		return UriBuilder.fromUri(clientURL + "/data");
 	}
 	
 	protected static Client getClientInstance() {

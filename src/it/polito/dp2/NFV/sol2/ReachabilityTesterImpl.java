@@ -63,7 +63,7 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			throw new AlreadyLoadedException("the graph is already loaded into the server");												// if the nffg list contains the nffg name throw a new already loaded exception
 		
 		Neo4jServiceManager neo4jService = new Neo4jServiceManager();
-		Map<String, String> nodeIDmap = new HashMap<String, String> ();
+		Map<String, String> nodeIDmap = new HashMap<> ();
 		
 		System.out.println("begin to send nffg-nodes to the server\n");
 		sendNffgNodes(nfgr, neo4jService, nodeIDmap);
@@ -102,27 +102,21 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			String nodeID = clientState.getNodeId(nffgName, nodeName);						// get the node id of the node
 			
 			if (nodeID == null)
-				//neo4jService.closeClient();
 				throw new ServiceException("the node doesn't correspond to any node contained into the interface");
 
 			reachableHost = neo4jService.getReachableHost(nodeID);
 			hostSet = getHostSet(reachableHost);
 			extendedNRset.add(new ExtendedNodeImpl(nodeReader, hostSet));
-			
-			/*try {
-				reachableHost = neo4jService.getReachableHost(nodeID);
-				hostSet = getHostSet(reachableHost);
-				extendedNRset.add(new ExtendedNodeImpl(nodeReader, hostSet));
-			} catch(ServiceException se) {
-				//neo4jService.closeClient();
-				throw se;
-			}*/
 		}
 		return extendedNRset;
 	}
 
 	@Override
 	public boolean isLoaded(String nffgName) throws UnknownNameException {
+
+		if (nffgName == null)
+			throw new UnknownNameException();
+
 		return clientState.graphIsForwarded(nffgName);
 	}
 
@@ -183,8 +177,7 @@ public class ReachabilityTesterImpl implements ReachabilityTester {
 			}	
 		}
 	}
-	
-	
+
 	// send the relationhip between the nodes
 	private void sendNffgRelationships(NffgReader nfgr, Neo4jServiceManager neo4jService, Map<String, String> nodeIDmap) throws ServiceException {
 		String destNodeID, srcNodeID; 
